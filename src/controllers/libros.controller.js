@@ -10,19 +10,10 @@ export const obtenerTodos = async (req, res) => {
 
 export const crear = async (req, res) => {
   try {
-    if (req.usuario.rol !== "admin") {
-      return res.status(403).json({ error: "Acceso denegado: Se requiere rol de administrador" })
-    }
-
-    const { titulo, autor } = req.body
-    if (!titulo || !autor) {
-      return res.status(400).json({ error: "Titulo y autor son obligatorios" })
-    }
-
+    const { titulo, autor, disponible } = req.body
     const libro = await prisma.libro.create({
-      data: { titulo, autor }
+      data: { titulo, autor, disponible }
     })
-
     res.status(201).json(libro)
   } catch (error) {
     console.error("Error al crear libro:", error)
@@ -32,22 +23,7 @@ export const crear = async (req, res) => {
 
 export const eliminar = async (req, res) => {
   const id = parseInt(req.params.id)
-  if (isNaN(id)) return res.status(400).json({ error: "ID de libro inválido" })
-
-  try {
-    if (req.usuario.rol !== "admin") {
-      return res.status(403).json({ error: "Acceso denegado: Se requiere rol de administrador" })
-    }
-
-    const existe = await prisma.libro.findUnique({ where: { id } })
-    if (!existe) {
-      return res.status(404).json({ error: "Libro no encontrado" })
-    }
-
-    await prisma.libro.delete({ where: { id } })
-    res.json({ mensaje: "Libro eliminado correctamente" })
-  } catch (error) {
-    console.error("Error al eliminar libro:", error)
-    res.status(500).json({ error: "Error interno del servidor" })
+  if (isNaN(id)) return res.status(400).json({ error: "ID de libro invalido" }) 
+  
   }
-}
+  
