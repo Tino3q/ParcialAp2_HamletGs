@@ -3,21 +3,20 @@ import { loggerMiddleware } from "./middlewares/logger.middleware.js"
 import { verificarToken } from "./middlewares/auth.middleware.js"
 import authRoutes from "./routes/auth.routes.js"
 import librosRoutes from "./routes/libros.routes.js"
-import prestamosRoutes from "./routes/prestamos.routes.js"
 
 const app = express()
 
 app.use(express.json())
 app.use(loggerMiddleware)
 
-// Rutas Públicas
 app.use("/auth", authRoutes)
-
-// Rutas Protegidas por JWT
 app.use("/libros", verificarToken, librosRoutes)
-app.use("/prestamos", verificarToken, prestamosRoutes)
 
+// Middleware de errores detallado para capturar el 500 en Postman
 app.use((err, req, res, next) => {
-  console.error(err.message)
-  res.status(500).json({ error: "Error interno del servidor" })
+  console.error("--- ERROR EN SERVIDOR ---")
+  console.error(err)
+  res.status(500).json({ error: err.message, stack: err.stack })
 })
+
+export default app
