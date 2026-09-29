@@ -1,0 +1,9 @@
+$kind: collection
+description: "Biblioteca: ejecutar colección principal primero, 1 iteración. Ver GUIA.md. Respuestas admitidas: entidad directa, data, usuario/libro/prestamo; listas directas, data, libros/prestamos/items. Ajustar helpers si el contrato difiere."
+scripts:
+  - type: http:afterResponse
+    code: |-
+      pm.test("Sin passwords en respuesta",()=>{ function walk(x){ if(x && typeof x==='object'){ Object.keys(x).forEach(k=>{ pm.expect(k.toLowerCase()).to.not.match(/^(password|passwordhash|hashedpassword)$/); walk(x[k]); }); }} walk(j); });
+      pm.test("Sin errores internos 5xx",()=>pm.expect(pm.response.code).to.be.below(500));
+      pm.test("Sin detalles internos comunes",()=>pm.expect(pm.response.text()).to.not.match(/PrismaClientKnownRequestError|PrismaClientValidationError|node_modules| at .*\.js:\d+:\d+/));
+    language: text/javascript

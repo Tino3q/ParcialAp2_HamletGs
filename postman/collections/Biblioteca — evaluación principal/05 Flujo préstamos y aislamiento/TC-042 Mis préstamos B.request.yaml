@@ -1,0 +1,22 @@
+$kind: http-request
+description: Mis préstamos B
+url: "{{baseUrl}}/prestamos/mis-prestamos"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenB}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      function entity(j){ return j && (j.data || j.usuario || j.libro || j.prestamo || j); }
+      function list(j){ const d=j && (j.data || j.libros || j.prestamos || j); return Array.isArray(d)?d:(d && (d.libros || d.prestamos || d.items)); }
+      function value(k){ return pm.environment.get(k); }
+      function save(k,v){ pm.expect(v, k+" presente").to.not.equal(undefined); pm.environment.set(k,v); }
+      let j; try { j=pm.response.json(); } catch(e) { j=null; }
+
+      pm.test("HTTP esperado",()=>pm.expect([200]).to.include(pm.response.code));
+      pm.test("Sin passwords en respuesta",()=>{ function walk(x){ if(x && typeof x==='object'){ Object.keys(x).forEach(k=>{ pm.expect(k.toLowerCase()).to.not.match(/^(password|passwordhash|hashedpassword)$/); walk(x[k]); }); }} walk(j); });
+      pm.test("Solo préstamos propios",()=>{const a=list(j);pm.expect(a).to.be.an('array');a.forEach(x=>pm.expect(x.usuarioId).to.equal(Number(value('usuarioBId'))));pm.expect(a.some(x=>x.id===Number(value('prestamoAId')))).to.equal(false);});
+    language: text/javascript
+order: 8000

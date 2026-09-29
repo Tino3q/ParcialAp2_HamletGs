@@ -1,0 +1,21 @@
+$kind: http-request
+description: Libro disponible tras devolución
+url: "{{baseUrl}}/libros"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenB}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      function entity(j){ return j && (j.data || j.usuario || j.libro || j.prestamo || j); }
+      function list(j){ const d=j && (j.data || j.libros || j.prestamos || j); return Array.isArray(d)?d:(d && (d.libros || d.prestamos || d.items)); }
+      function value(k){ return pm.environment.get(k); }
+      function save(k,v){ pm.expect(v, k+" presente").to.not.equal(undefined); pm.environment.set(k,v); }
+      let j; try { j=pm.response.json(); } catch(e) { j=null; }
+
+      pm.test("HTTP esperado",()=>pm.expect([200]).to.include(pm.response.code));
+      pm.test("Estado del libro",()=>{ const a=list(j); pm.expect(a).to.be.an('array'); const b=a.find(x=>x.id===Number(value('libroId'))); pm.expect(b,'Libro presente').to.exist; pm.expect(b.disponible).to.equal(true); });
+    language: text/javascript
+order: 15000

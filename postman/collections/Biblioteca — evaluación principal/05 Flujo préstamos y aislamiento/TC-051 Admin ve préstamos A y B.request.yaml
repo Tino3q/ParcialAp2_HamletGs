@@ -1,0 +1,21 @@
+$kind: http-request
+description: Admin ve préstamos A y B
+url: "{{baseUrl}}/prestamos"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      function entity(j){ return j && (j.data || j.usuario || j.libro || j.prestamo || j); }
+      function list(j){ const d=j && (j.data || j.libros || j.prestamos || j); return Array.isArray(d)?d:(d && (d.libros || d.prestamos || d.items)); }
+      function value(k){ return pm.environment.get(k); }
+      function save(k,v){ pm.expect(v, k+" presente").to.not.equal(undefined); pm.environment.set(k,v); }
+      let j; try { j=pm.response.json(); } catch(e) { j=null; }
+
+      pm.test("HTTP esperado",()=>pm.expect([200]).to.include(pm.response.code));
+      pm.test('Ambos préstamos presentes',()=>{const ids=list(j).map(x=>x.id);pm.expect(ids).to.include(Number(value('prestamoAId')));pm.expect(ids).to.include(Number(value('prestamoBId')));});
+    language: text/javascript
+order: 17000
